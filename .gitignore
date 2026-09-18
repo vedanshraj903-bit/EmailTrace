@@ -1,0 +1,45 @@
+# ---- OS / editors ----
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# ---- Secrets ----
+.env
+.env.*
+!.env.example
+
+# ---- Training data (large; kept outside version control) ----
+DATASET/
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# ---- Backend runtime data ----
+# Evidence, the case database, downloaded feeds and GeoIP databases are created at runtime.
+backend/data/*
+!backend/data/protected_brands.json
+!backend/data/geoip/
+backend/data/geoip/*
+!backend/data/geoip/.gitkeep
+
+# ---- ML artifacts ----
+# The trained model is rebuilt with `python -m ml.train`; its metrics summary is kept.
+backend/ml/*.joblib
+backend/ml/*.log
+
+# ---- Frontend ----
+node_modules/
+dist/
+dist-ssr/
+*.local
+*.log

@@ -1,0 +1,35 @@
+Return-Path: <md.rajesh.office@gmail.com>
+Received: from mail-sor-f41.google.com (mail-sor-f41.google.com. [209.85.220.41])
+        by mx.google.com with SMTPS id a1sor123456pfb.12.2025.09.16.02.10.11
+        for <accounts@company.co.in>
+        (Google Transport Security);
+        Tue, 16 Sep 2025 02:10:11 -0700 (PDT)
+Received-SPF: pass (google.com: domain of md.rajesh.office@gmail.com designates 209.85.220.41 as permitted sender) client-ip=209.85.220.41;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@gmail.com header.s=20230601 header.b=AbCdEf;
+       spf=pass (google.com: domain of md.rajesh.office@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=md.rajesh.office@gmail.com;
+       dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com
+Received: by 2002:a05:6a00:1a2b:b0:6f1:2345:6789 with SMTP id x11csp123456pfy;
+        Tue, 16 Sep 2025 02:10:10 -0700 (PDT)
+From: "Rajesh Mehta (Managing Director)" <md.rajesh.office@gmail.com>
+Reply-To: "Rajesh Mehta" <rajesh.md.personal@outlook.com>
+To: accounts@company.co.in
+Subject: Confidential - urgent vendor payment today
+Date: Tue, 16 Sep 2025 14:40:05 +0530
+Message-ID: <CAF+abc123xyz@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+
+Hi,
+
+I am in a meeting and cannot take calls. Please process an urgent wire transfer of Rs 4,85,000
+to our new vendor today. Their bank details have changed; use the new bank account below:
+
+Beneficiary: Shree Traders
+Account: 50100234567891
+IFSC: HDFC0001234
+
+Keep this between us until the deal is announced. Confirm once done as soon as possible.
+
+Rajesh
+Managing Director

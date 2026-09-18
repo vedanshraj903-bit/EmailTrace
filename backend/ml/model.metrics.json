@@ -1,0 +1,22 @@
+{
+  "macro_f1": 0.9723,
+  "malicious_recall": 0.9614,
+  "benign_false_positive_rate": 0.0142,
+  "cv_macro_f1": 0.9722,
+  "alpha": 1.0,
+  "n_train": 210115,
+  "n_test": 52529,
+  "external": {
+    "source": "CEAS_08.csv.zip",
+    "n": 32644,
+    "macro_f1": 0.9531,
+    "malicious_recall": 0.9961,
+    "benign_false_positive_rate": 0.0864
+  },
+  "variant": "multinomial NB (alpha=1.0)",
+  "labels": [
+    "legitimate",
+    "malicious"
+  ],
+  "source": "df.csv, CEAS_08.csv.zip"
+}
