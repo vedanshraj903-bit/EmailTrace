@@ -51,8 +51,9 @@ class Repository:
                     result.summary.from_.domain,
                     sender_key,
                     result.origin.ip,
-                    # A masked origin is the provider's server, not the sender, so it gets no country.
-                    geo.country if geo and not result.origin.webmail_masked else None,
+                    # ISO code, not the name: names differ by provider ("India" vs "IN") and would split
+                    # the dashboard counts. A masked origin is the provider's server, so it gets none.
+                    (geo.country_code or "").upper() or None if geo and not result.origin.webmail_masked else None,
                     result.origin.asn,
                     result.risk.score,
                     result.risk.level,

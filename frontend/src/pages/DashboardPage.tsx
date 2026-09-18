@@ -5,7 +5,7 @@ import type { RiskLevel, Stats, Verdict } from '../api/types'
 import { CaseTable } from '../components/CaseTable'
 import { Icon } from '../components/Icon'
 import { Card, EmptyState, ErrorState, Skeleton, VerdictBadge } from '../components/ui'
-import { formatShortDate } from '../lib/format'
+import { countryName, formatShortDate } from '../lib/format'
 import { useResource } from '../lib/useResource'
 
 const DAYS = 30
@@ -248,7 +248,14 @@ export default function DashboardPage() {
         </Card>
         <div className="stack gap-16">
           <Card title="Top origin countries">
-            {data ? <BarList rows={data.top_countries} empty="No geolocated origins yet" /> : <Skeleton height={120} />}
+            {data ? (
+              <BarList
+                rows={data.top_countries.map(([code, count]) => [countryName({ country: null, country_code: code }) ?? code, count])}
+                empty="No geolocated origins yet"
+              />
+            ) : (
+              <Skeleton height={120} />
+            )}
           </Card>
           <Card title="Top origin networks">
             {data ? <BarList rows={data.top_origin_asns} empty="No ASN data yet" mono /> : <Skeleton height={120} />}
