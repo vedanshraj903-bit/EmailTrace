@@ -24,6 +24,11 @@
   --series-2: #eb6834;
   --series-3: #1baf7a;
 
+  /* Dashboard risk levels (validated with the palette checker, light surface). */
+  --risk-high: #e5484d;
+  --risk-medium: #f59a3c;
+  --risk-low: #138a55;
+
   /* Status: fixed hues, always paired with an icon and a label. */
   --good: #0ca30c;
   --good-ink: #006300;
@@ -68,6 +73,10 @@
     --series-1: #3987e5;
     --series-2: #d95926;
     --series-3: #199e70;
+
+    --risk-high: #dd3f63;
+    --risk-medium: #cc7f1f;
+    --risk-low: #1b8f5e;
 
     --good-ink: #4cc44c;
     --good-soft: #15291a;
@@ -936,6 +945,18 @@ ul.plain {
 
 .stat[class*='tone-'] {
   border-left: 3px solid var(--tone);
+}
+
+.stat.risk-high {
+  border-left: 3px solid var(--risk-high);
+}
+
+.stat.risk-medium {
+  border-left: 3px solid var(--risk-medium);
+}
+
+.stat.risk-low {
+  border-left: 3px solid var(--risk-low);
 }
 
 .stat-label {

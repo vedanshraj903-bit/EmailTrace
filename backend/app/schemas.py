@@ -368,7 +368,7 @@ class Stats(BaseModel):
     by_verdict: dict[str, int]
     top_countries: list[tuple[str, int]]
     top_origin_asns: list[tuple[str, int]]
-    daily: list[tuple[str, int, int]]  # date, total, high-risk
+    daily: list[tuple[str, int, int, int]]  # date, total, high/critical, medium
 
 
 class Health(BaseModel):

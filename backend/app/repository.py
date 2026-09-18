@@ -258,7 +258,8 @@ class Repository:
             ).fetchall()
             daily = conn.execute(
                 "SELECT substr(created_at, 1, 10) d, COUNT(*),"
-                " SUM(CASE WHEN level IN ('high','critical') THEN 1 ELSE 0 END)"
+                " SUM(CASE WHEN level IN ('high','critical') THEN 1 ELSE 0 END),"
+                " SUM(CASE WHEN level = 'medium' THEN 1 ELSE 0 END)"
                 " FROM analyses WHERE created_at >= ? GROUP BY d ORDER BY d",
                 (since,),
             ).fetchall()
@@ -268,5 +269,5 @@ class Repository:
             by_verdict=by_verdict,
             top_countries=[(r[0], r[1]) for r in countries],
             top_origin_asns=[(r[0], r[1]) for r in asns],
-            daily=[(r[0], r[1], r[2]) for r in daily],
+            daily=[(r[0], r[1], r[2], r[3]) for r in daily],
         )

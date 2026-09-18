@@ -347,7 +347,7 @@ export interface Stats {
   by_verdict: Partial<Record<Verdict, number>>
   top_countries: [string, number][]
   top_origin_asns: [string, number][]
-  daily: [string, number, number][]
+  daily: [string, number, number, number][] // date, total, high/critical, medium
 }
 
 export interface Health {
