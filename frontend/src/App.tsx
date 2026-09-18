@@ -21,10 +21,13 @@ const NAV: { to: string; label: string; icon: IconName; end?: boolean }[] = [
 
 function SystemStatus() {
   const { data, error } = useResource<Health>('health', (signal) => api.health(signal))
-  const rows: [string, boolean | undefined][] = [
+  // Geolocation and ASN can come from either provider; show which one is active.
+  const geoSource = (maxmind: boolean | undefined) =>
+    data ? [maxmind && 'MaxMind', data.ipinfo_token && 'IPinfo'].filter(Boolean).join(' + ') || false : undefined
+  const rows: [string, boolean | string | undefined][] = [
     ['ML classifier', data?.classifier_loaded],
-    ['GeoIP city', data?.maxmind_city || data?.ipinfo_token],
-    ['GeoIP ASN', data?.maxmind_asn],
+    ['GeoIP city', geoSource(data?.maxmind_city)],
+    ['GeoIP ASN', geoSource(data?.maxmind_asn)],
     ['WHOIS lookups', data?.whois_enabled],
     ['Tor exit list', data ? data.tor_exit_nodes > 0 : undefined],
     ['Disposable list', data ? data.disposable_domains > 0 : undefined],
@@ -42,7 +45,7 @@ function SystemStatus() {
               {ok === undefined ? (
                 <Skeleton width={42} height={14} />
               ) : (
-                <Badge tone={ok ? 'good' : 'neutral'} label={ok ? 'On' : 'Off'} />
+                <Badge tone={ok ? 'good' : 'neutral'} label={typeof ok === 'string' ? ok : ok ? 'On' : 'Off'} />
               )}
             </li>
           ))}
