@@ -3,7 +3,7 @@
 import { lazy, Suspense, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api, ApiError } from '../api/client'
-import type { AnalysisResult, Finding, Severity } from '../api/types'
+import type { AnalysisResult, Finding, GeoPoint, Severity } from '../api/types'
 import { CampaignGraphView } from '../components/CampaignGraphView'
 import { Icon } from '../components/Icon'
 import { ScoreGauge } from '../components/ScoreGauge'
@@ -25,11 +25,13 @@ import {
 import {
   ATTRIBUTION_LABEL,
   CATEGORY_LABEL,
+  countryName,
   formatBytes,
   formatDateTime,
   formatDuration,
   HOSTING_LABEL,
   INDICATOR_LABEL,
+  locationLabel,
   percent,
   scoreTone,
 } from '../lib/format'
@@ -214,13 +216,44 @@ function AuthenticationTab({ result }: { result: AnalysisResult }) {
 
 /* ---------- Route & origin ------------------------------------------------ */
 
+function LocationCard({ geo, masked }: { geo: GeoPoint | null; masked: boolean }) {
+  return (
+    <Card
+      title={masked ? 'Provider server location' : 'Sender location'}
+      hint={
+        geo
+          ? `IP location via ${geo.coord_source === 'ipinfo' ? 'IPinfo' : 'MaxMind'}; district via OpenStreetMap`
+          : undefined
+      }
+    >
+      {!geo ? (
+        <p className="muted">The originating IP could not be located.</p>
+      ) : (
+        <KeyValue
+          rows={[
+            ['Country', countryName(geo) && <span>{countryName(geo)} {geo.country_code && <span className="muted">({geo.country_code})</span>}</span>],
+            ['State / region', geo.region],
+            ['District', geo.district],
+            ['Sub-district', geo.subdistrict],
+            ['City / town', geo.city],
+            ['PIN / postal code', geo.postal && <span className="mono">{geo.postal}</span>],
+            ['Coordinates', <span className="mono">{geo.lat.toFixed(4)}, {geo.lon.toFixed(4)}</span>],
+            ['Accuracy', `± ${geo.accuracy_radius_km} km${geo.radius_source === 'default' ? ' (estimated)' : ''}`],
+            ['Timezone', geo.timezone],
+          ]}
+        />
+      )}
+    </Card>
+  )
+}
+
 function RouteTab({ result }: { result: AnalysisResult }) {
   const { origin, hops } = result
   const listed = origin.dnsbl.filter((entry) => entry.listed)
   const geo = origin.geo
   return (
     <div className="stack gap-16">
-      <div className="grid grid-main-side">
+      <div className="grid grid-main-side align-start">
         <Card
           title="Geographic trace"
           hint={
@@ -240,54 +273,52 @@ function RouteTab({ result }: { result: AnalysisResult }) {
             </EmptyState>
           )}
         </Card>
-        <Card title="Origin">
-          {origin.note && (
-            <div className="bottom-gap">
-              <Alert tone={origin.webmail_masked ? 'warning' : 'neutral'}>{origin.note}</Alert>
-            </div>
-          )}
-          <KeyValue
-            rows={[
-              origin.webmail_masked
-                ? ['Sender IP', <Badge tone="neutral" label={`Hidden by ${result.domain.registered_domain || 'the provider'}`} />]
-                : ['Originating IP', <span className="mono">{origin.ip ?? 'Not determinable'}</span>],
-              ...(origin.webmail_masked
-                ? ([['Provider server', <span className="mono">{origin.ip ?? '—'}</span>]] as [ReactNode, ReactNode][])
-                : []),
-              ['Determined from', origin.source === 'none' ? '—' : origin.source],
-              [
-                origin.webmail_masked ? 'Server location' : 'Location',
-                geo ? [geo.city, geo.region, geo.country].filter(Boolean).join(', ') || '—' : null,
-              ],
-              ['Accuracy', geo ? `± ${geo.accuracy_radius_km} km${geo.radius_source === 'default' ? ' (estimated)' : ''}` : null],
-              ['Network', origin.asn ? <span>{origin.asn} · {origin.org}</span> : origin.org],
-              ['Hosting', HOSTING_LABEL[origin.hosting_class]],
-              ['Reverse DNS', <span className="mono">{origin.ptr ?? '—'}</span>],
-              ['FCrDNS', <BoolBadge value={origin.fcrdns} good="Confirmed" bad="Mismatch" />],
-              ['Tor exit node', origin.tor_exit === null ? <Badge tone="neutral" label="Unknown" /> : origin.tor_exit ? <Badge tone="critical" label="Tor exit" /> : <Badge tone="good" label="No" />],
-              [
-                'Blocklists',
-                origin.dnsbl.length === 0 ? (
-                  'Not checked'
-                ) : listed.length ? (
-                  <span className="row">{listed.map((entry) => <Badge key={entry.zone} tone="critical" label={entry.zone} />)}</span>
-                ) : (
-                  <Badge tone="good" label={`Clean on ${origin.dnsbl.length} lists`} />
-                ),
-              ],
-              [
-                'SMTP probe',
-                origin.smtp_probe ? (
-                  origin.smtp_probe.error ? (
-                    <span className="muted">{origin.smtp_probe.error}</span>
+        <div className="stack gap-16">
+          <Card title="Origin">
+            {origin.note && (
+              <div className="bottom-gap">
+                <Alert tone={origin.webmail_masked ? 'warning' : 'neutral'}>{origin.note}</Alert>
+              </div>
+            )}
+            <KeyValue
+              rows={[
+                origin.webmail_masked
+                  ? ['Sender IP', <Badge tone="neutral" label={`Hidden by ${result.domain.registered_domain || 'the provider'}`} />]
+                  : ['Originating IP', <span className="mono">{origin.ip ?? 'Not determinable'}</span>],
+                ...(origin.webmail_masked
+                  ? ([['Provider server', <span className="mono">{origin.ip ?? '—'}</span>]] as [ReactNode, ReactNode][])
+                  : []),
+                ['Determined from', origin.source === 'none' ? '—' : origin.source],
+                ['Network', origin.asn ? <span>{origin.asn} · {origin.org}</span> : origin.org],
+                ['Hosting', HOSTING_LABEL[origin.hosting_class]],
+                ['Reverse DNS', <span className="mono">{origin.ptr ?? '—'}</span>],
+                ['FCrDNS', <BoolBadge value={origin.fcrdns} good="Confirmed" bad="Mismatch" />],
+                ['Tor exit node', origin.tor_exit === null ? <Badge tone="neutral" label="Unknown" /> : origin.tor_exit ? <Badge tone="critical" label="Tor exit" /> : <Badge tone="good" label="No" />],
+                [
+                  'Blocklists',
+                  origin.dnsbl.length === 0 ? (
+                    'Not checked'
+                  ) : listed.length ? (
+                    <span className="row">{listed.map((entry) => <Badge key={entry.zone} tone="critical" label={entry.zone} />)}</span>
                   ) : (
-                    <span className="mono">{origin.smtp_probe.banner}</span>
-                  )
-                ) : null,
-              ],
-            ]}
-          />
-        </Card>
+                    <Badge tone="good" label={`Clean on ${origin.dnsbl.length} lists`} />
+                  ),
+                ],
+                [
+                  'SMTP probe',
+                  origin.smtp_probe ? (
+                    origin.smtp_probe.error ? (
+                      <span className="muted">{origin.smtp_probe.error}</span>
+                    ) : (
+                      <span className="mono">{origin.smtp_probe.banner}</span>
+                    )
+                  ) : null,
+                ],
+              ]}
+            />
+          </Card>
+          <LocationCard geo={geo} masked={origin.webmail_masked} />
+        </div>
       </div>
 
       <Card title="Delivery path" hint="Received headers, oldest hop first" flush>
@@ -317,7 +348,7 @@ function RouteTab({ result }: { result: AnalysisResult }) {
                       <div className="muted mono">{hop.from_rdns ?? hop.from_helo ?? ''}</div>
                     </td>
                     <td className="mono break">{hop.by_host ?? '—'}</td>
-                    <td>{hop.geo ? [hop.geo.city, hop.geo.country_code].filter(Boolean).join(', ') || '—' : '—'}</td>
+                    <td>{hop.geo ? locationLabel(hop.geo, true) : '—'}</td>
                     <td className="nowrap">{formatDateTime(hop.timestamp)}</td>
                     <td className="num nowrap">{hop.delay_s === null ? '—' : formatDuration(hop.delay_s)}</td>
                     <td>

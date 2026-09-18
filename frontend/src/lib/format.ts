@@ -1,4 +1,4 @@
-import type { AttributionAssessment, AuthResult, FindingCategory, HostingClass, Verdict } from '../api/types'
+import type { AttributionAssessment, AuthResult, FindingCategory, GeoPoint, HostingClass, Verdict } from '../api/types'
 
 const dateTime = new Intl.DateTimeFormat(undefined, {
   year: 'numeric',
@@ -124,3 +124,27 @@ export function scoreTone(score: number): Tone {
   if (score >= 25) return 'warning'
   return 'good'
 }
+
+const regionNames = new Intl.DisplayNames(undefined, { type: 'region' })
+
+/** Full country name, falling back to the ISO code (IPinfo only returns the code). */
+export function countryName(geo: Pick<GeoPoint, 'country' | 'country_code'>): string | null {
+  if (geo.country && geo.country.length > 2) return geo.country
+  const code = geo.country_code ?? geo.country
+  if (!code) return null
+  try {
+    return regionNames.of(code.toUpperCase()) ?? code
+  } catch {
+    return code
+  }
+}
+
+/** Narrowest to broadest, skipping repeats (a city and its district often share a name). */
+export function locationLabel(geo: GeoPoint, short = false): string {
+  const parts = short
+    ? [geo.city, geo.district, geo.country_code]
+    : [geo.city, geo.district, geo.region, countryName(geo)]
+  const unique = parts.filter((part, i): part is string => Boolean(part) && !parts.slice(0, i).includes(part))
+  return unique.join(', ') || 'Unknown location'
+}
+

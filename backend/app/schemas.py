@@ -141,10 +141,15 @@ class GeoPoint(BaseModel):
     accuracy_radius_km: int
     radius_source: Literal["maxmind", "default"]
     coord_source: Literal["ipinfo", "maxmind"]
-    city: str | None = None
-    region: str | None = None
+    # Administrative hierarchy, broadest first. district/subdistrict come from reverse geocoding the
+    # coordinates (OpenStreetMap), so they are only as precise as the IP location itself.
     country: str | None = None
     country_code: str | None = None
+    region: str | None = None  # state / province
+    district: str | None = None
+    subdistrict: str | None = None  # tehsil / taluk / county
+    city: str | None = None
+    postal: str | None = None
     org: str | None = None
     asn: str | None = None
     timezone: str | None = None

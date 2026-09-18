@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     dns_timeout_s: float = 3.0
     http_timeout_s: float = 4.0
     enable_whois: bool = True
+    # District / sub-district from OpenStreetMap Nominatim (public instance: max 1 request/second).
+    enable_reverse_geocode: bool = True
+    nominatim_url: str = "https://nominatim.openstreetmap.org"
     enable_smtp_probe: bool = False  # outbound :25 is blocked on most networks
     smtp_timeout_s: float = 5.0
 

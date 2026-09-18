@@ -12,6 +12,7 @@ import httpx
 from app.config import get_settings
 from app.db import Database
 from app.schemas import GeoPoint
+from app.services.reverse_geocode import ReverseGeocoder
 
 log = logging.getLogger(__name__)
 
@@ -45,6 +46,7 @@ class GeoLocator:
         self.city_reader = _open_reader(self._city_path)
         self.asn_reader = _open_reader(self._asn_path)
         self._http = httpx.Client(timeout=self._timeout)
+        self._reverse = ReverseGeocoder(db)
 
     def reload_databases(self) -> None:
         """Swaps in freshly downloaded MaxMind files; lookups in flight keep the old reader until they finish."""
@@ -115,6 +117,7 @@ class GeoLocator:
         geo = None
         if lat is not None and lon is not None:
             radius = city.location.accuracy_radius if city and city.location.accuracy_radius else None
+            admin = self._reverse.lookup(lat, lon)
             geo = GeoPoint(
                 ip=ip,
                 lat=lat,
@@ -122,10 +125,15 @@ class GeoLocator:
                 accuracy_radius_km=radius or self._default_radius,
                 radius_source="maxmind" if radius else "default",
                 coord_source=coord_source,
-                city=info.get("city") or (city.city.name if city else None),
-                region=info.get("region") or (city.subdivisions.most_specific.name if city else None),
-                country=(city.country.name if city and city.country.name else None) or info.get("country"),
+                country=(city.country.name if city and city.country.name else None) or (admin and admin.country),
                 country_code=info.get("country") or (city.country.iso_code if city else None),
+                region=info.get("region")
+                or (city.subdivisions.most_specific.name if city else None)
+                or (admin and admin.state),
+                district=admin.district if admin else None,
+                subdistrict=admin.subdistrict if admin else None,
+                city=info.get("city") or (city.city.name if city else None) or (admin and admin.city),
+                postal=info.get("postal") or (city.postal.code if city else None) or (admin and admin.postal),
                 org=org,
                 asn=asn,
                 timezone=info.get("timezone") or (city.location.time_zone if city else None),
@@ -134,6 +142,7 @@ class GeoLocator:
 
     def close(self) -> None:
         self._http.close()
+        self._reverse.close()
         for reader in (self.city_reader, self.asn_reader):
             if reader:
                 reader.close()

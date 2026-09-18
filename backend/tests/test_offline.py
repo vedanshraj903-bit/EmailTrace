@@ -14,6 +14,7 @@ from app.schemas import (
     DmarcCheck,
     DnsRecords,
     DomainIntel,
+    GeoPoint,
     Lookalike,
     Origin,
     RecordedAuth,
@@ -26,6 +27,8 @@ from app.services.domain_intel import detect_lookalike, levenshtein, skeleton
 from app.services.feeds import Feeds
 from app.services.infrastructure import classify_hosting, find_origin_ip, is_generic_ptr
 from app.services.parser import parse_email, parse_received
+from app.services.report import location_label
+from app.services.reverse_geocode import parse_address
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -317,3 +320,44 @@ def test_normalize_text_maps_raw_and_corpus_formats_to_same_tokens():
     assert raw.split()[-5:] == corpus.split()[-5:] == ["urltoken", "or", "call", "numtoken", "numtoken"]
     assert "moneytoken" in raw and "escape" not in corpus
 
+
+def test_parse_address_india_keeps_district_and_tehsil():
+    admin = parse_address(
+        {
+            "city": "Bokaro",
+            "county": "Chas",
+            "state_district": "Bokaro",
+            "state": "Jharkhand",
+            "postcode": "827004",
+            "country": "India",
+            "country_code": "in",
+        }
+    )
+    assert (admin.state, admin.district, admin.subdistrict, admin.city) == ("Jharkhand", "Bokaro", "Chas", "Bokaro")
+
+
+def test_parse_address_county_is_district_when_no_state_district():
+    admin = parse_address(
+        {"town": "Hamina", "county": "Kymenlaakso", "state": "Southern Finland", "country": "Finland"}
+    )
+    assert (admin.district, admin.subdistrict, admin.city) == ("Kymenlaakso", None, "Hamina")
+
+
+def test_location_label_orders_narrow_to_broad_without_repeats():
+    geo = GeoPoint(
+        ip="1.2.3.4",
+        lat=23.67,
+        lon=86.15,
+        accuracy_radius_km=25,
+        radius_source="default",
+        coord_source="ipinfo",
+        country="India",
+        country_code="IN",
+        region="Jharkhand",
+        district="Bokaro",
+        subdistrict="Chas",
+        city="Bokaro",
+        postal="827004",
+    )
+    assert location_label(geo) == "Bokaro, Chas, Jharkhand, 827004, India"
+    assert location_label(geo, short=True) == "Bokaro, IN"

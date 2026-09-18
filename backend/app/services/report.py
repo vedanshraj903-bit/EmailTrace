@@ -12,7 +12,7 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.platypus import KeepTogether, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-from app.schemas import AnalysisResult, CustodyEvent
+from app.schemas import AnalysisResult, CustodyEvent, GeoPoint
 
 INK = colors.HexColor("#1b2330")
 MUTED = colors.HexColor("#5b6675")
@@ -23,6 +23,16 @@ LEVEL_COLOR = {
     "high": colors.HexColor("#c2410c"),
     "critical": colors.HexColor("#b42318"),
 }
+
+
+def location_label(geo: GeoPoint, short: bool = False) -> str:
+    """Narrowest to broadest: city, sub-district, district, state, PIN, country."""
+    if short:
+        parts = [geo.city, geo.district, geo.country_code]
+    else:
+        parts = [geo.city, geo.subdistrict, geo.district, geo.region, geo.postal, geo.country or geo.country_code]
+    unique = [p for i, p in enumerate(parts) if p and p not in parts[:i]]  # city and district often share a name
+    return ", ".join(unique) or "unknown"
 
 
 def _styles():
@@ -203,8 +213,7 @@ def build_pdf(result: AnalysisResult, custody: list[CustodyEvent]) -> bytes:
                 [
                     _p("Location", s["body"]),
                     _p(
-                        f"{geo.city or ''}, {geo.region or ''}, {geo.country or ''} ({geo.lat:.4f}, {geo.lon:.4f}) "
-                        f"±{geo.accuracy_radius_km} km"
+                        f"{location_label(geo)} ({geo.lat:.4f}, {geo.lon:.4f}) ±{geo.accuracy_radius_km} km"
                         if geo
                         else "unavailable",
                         s["body"],
@@ -241,7 +250,7 @@ def build_pdf(result: AnalysisResult, custody: list[CustodyEvent]) -> bytes:
     story += [_p("6. Relay path (oldest first)", s["h2"])]
     rows = [[_p(h, s["body"]) for h in ("#", "From", "IP", "By", "Time (UTC)", "Location")]]
     for hop in result.hops:
-        loc = f"{hop.geo.city or ''} {hop.geo.country_code or ''}".strip() if hop.geo else ""
+        loc = location_label(hop.geo, short=True) if hop.geo else ""
         rows.append(
             [
                 _p(hop.index + 1, s["body"]),

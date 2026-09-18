@@ -133,10 +133,13 @@ export interface GeoPoint {
   accuracy_radius_km: number
   radius_source: 'maxmind' | 'default'
   coord_source: 'ipinfo' | 'maxmind'
-  city: string | null
-  region: string | null
   country: string | null
   country_code: string | null
+  region: string | null
+  district: string | null
+  subdistrict: string | null
+  city: string | null
+  postal: string | null
   org: string | null
   asn: string | null
   timezone: string | null

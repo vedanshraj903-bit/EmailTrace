@@ -3,6 +3,7 @@ import L from 'leaflet'
 import { useEffect, useMemo, useState } from 'react'
 import { Circle, CircleMarker, MapContainer, Polyline, Popup, TileLayer, Tooltip, useMap } from 'react-leaflet'
 import type { GeoPoint, Hop, Origin } from '../api/types'
+import { locationLabel } from '../lib/format'
 
 interface MapPoint {
   key: string
@@ -59,9 +60,6 @@ function FitBounds({ points, radiusMeters }: { points: MapPoint[]; radiusMeters:
   return null
 }
 
-function locationLabel(geo: GeoPoint): string {
-  return [geo.city, geo.region, geo.country ?? geo.country_code].filter(Boolean).join(', ') || 'Unknown location'
-}
 
 export function TraceMap({ hops, origin }: { hops: Hop[]; origin: Origin }) {
   const dark = useDarkMode()
