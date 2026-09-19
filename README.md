@@ -82,6 +82,15 @@ MAXMIND_LICENSE_KEY=your_key
 ```
 The databases download by themselves when the backend starts.
 
+**Live mailbox.** EmailTrace can watch an inbox and analyze each new email within about 15 seconds, with no uploading. The dashboard's *Live mailbox* card lists them, and high-risk mail pops up an alert. It only reads mail: nothing is marked read, moved or deleted.
+
+For Gmail: turn on 2-Step Verification, create an app password at [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords), then add:
+```
+IMAP_USER=you@gmail.com
+IMAP_PASSWORD=your16letterapppassword
+```
+Only mail that arrives after the first connection is analyzed. Set `IMAP_BACKFILL=10` to also analyze the 10 most recent emails the first time. For other providers set `IMAP_HOST` too.
+
 **ML classifier.** The trained model is not in git (it is 26 MB). To build it, put the datasets in a `DATASET/` folder at the project root, then run:
 ```bash
 cd backend && source .venv/bin/activate

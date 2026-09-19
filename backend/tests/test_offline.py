@@ -361,3 +361,64 @@ def test_location_label_orders_narrow_to_broad_without_repeats():
     )
     assert location_label(geo) == "Bokaro, Chas, Jharkhand, 827004, India"
     assert location_label(geo, short=True) == "Bokaro, IN"
+
+
+class _FakeImap:
+    """Folder with UIDVALIDITY 7 holding the given UIDs; records every command sent."""
+
+    def __init__(self, uids: list[int]) -> None:
+        self.uids = uids
+        self.commands: list[tuple] = []
+
+    def status(self, folder, items):
+        return "OK", [f'"INBOX" (UIDVALIDITY 7 UIDNEXT {max(self.uids) + 1})'.encode()]
+
+    def uid(self, command, *args):
+        self.commands.append((command, *args))
+        if command == "SEARCH":
+            start = int(args[1].split()[1].split(":")[0])
+            return "OK", [" ".join(str(u) for u in self.uids if u >= start).encode() or str(self.uids[-1]).encode()]
+        if "RFC822.SIZE" in args[1]:
+            return "OK", [f"1 (UID {args[0]} RFC822.SIZE 100)".encode()]
+        return "OK", [(f"1 (UID {args[0]} BODY[] {{9}}".encode(), b"raw " + args[0].encode()), b")"]
+
+
+def _watcher(tmp_path, analyzed: list[bytes]):
+    from types import SimpleNamespace
+
+    from app.config import Settings
+    from app.services.mailbox import MailboxWatcher
+
+    def analyze(raw, filename):
+        analyzed.append(raw)
+        summary = SimpleNamespace(subject="s", from_=SimpleNamespace(address="a@b.com"))
+        risk = SimpleNamespace(score=90, level="critical", verdict="phishing")
+        return SimpleNamespace(id="x", summary=summary, risk=risk)
+
+    settings = Settings(imap_user="someone123@gmail.com", imap_password="secret", _env_file=None)
+    analyzer = SimpleNamespace(db=Database(tmp_path / "t.db"), analyze=analyze)
+    return MailboxWatcher(settings, analyzer)
+
+
+def test_mailbox_only_analyses_new_mail_without_marking_it_read(tmp_path):
+    analyzed: list[bytes] = []
+    watcher = _watcher(tmp_path, analyzed)
+    conn = _FakeImap([1, 2, 3])
+    last = watcher._start_position(conn)
+    assert last == 3  # existing mail is left alone
+    assert watcher._fetch_new(conn, last) == 3 and analyzed == []
+
+    conn.uids = [1, 2, 3, 4, 5]
+    assert watcher._fetch_new(conn, last) == 5
+    assert analyzed == [b"raw 4", b"raw 5"]
+    assert all("BODY[]" not in c[2] for c in conn.commands if c[0] == "FETCH")  # PEEK only
+    assert watcher.status().analyzed == 2 and watcher.status().recent[0].level == "critical"
+
+    # A restart resumes after UID 5 instead of repeating or skipping mail.
+    assert _watcher(tmp_path, [])._start_position(conn) == 5
+
+
+def test_mailbox_status_masks_account_and_hides_password(tmp_path):
+    status = _watcher(tmp_path, []).status()
+    assert status.account == "so***23@gmail.com"
+    assert "secret" not in status.model_dump_json()

@@ -1,10 +1,11 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { api } from '../api/client'
 import type { RiskLevel, Stats, Verdict } from '../api/types'
 import { CaseTable } from '../components/CaseTable'
 import { Icon } from '../components/Icon'
+import { LiveMailbox } from '../components/LiveMailbox'
 import { AnimatedNumber, Card, EmptyState, ErrorState, Skeleton, VerdictBadge } from '../components/ui'
 import { countryName, formatShortDate } from '../lib/format'
 import { useResource } from '../lib/useResource'
@@ -164,6 +165,11 @@ export default function DashboardPage() {
     return () => window.clearInterval(timer)
   }, [reloadStats, reloadRecent])
 
+  const onNewMail = useCallback(() => {
+    reloadStats()
+    reloadRecent()
+  }, [reloadStats, reloadRecent])
+
   if (stats.error) {
     return (
       <div className="page">
@@ -213,6 +219,8 @@ export default function DashboardPage() {
           Array.from({ length: 4 }, (_, i) => <Skeleton key={i} height={92} />)
         )}
       </div>
+
+      <LiveMailbox onNewMail={onNewMail} />
 
       <div className="grid grid-main-side">
         <Card title="Activity" hint={`Messages analyzed per day, last ${DAYS} days`}>

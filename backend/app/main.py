@@ -14,12 +14,13 @@ from fastapi.responses import Response
 
 from app.config import get_settings
 from app.db import Database
-from app.schemas import AnalysisPage, AnalysisResult, CampaignGraph, CustodyEvent, Health, Stats
+from app.schemas import AnalysisPage, AnalysisResult, CampaignGraph, CustodyEvent, Health, MailboxStatus, Stats
 from app.services import geoip_update
 from app.services.analyzer import Analyzer
 from app.services.classifier import ContentClassifier
 from app.services.feeds import Feeds
 from app.services.geo import GeoLocator
+from app.services.mailbox import MailboxWatcher
 from app.services.report import build_pdf
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -47,7 +48,10 @@ async def lifespan(app: FastAPI):
             analyzer.evidence_path(sha).unlink(missing_ok=True)
 
     app.state.analyzer = analyzer
+    app.state.mailbox = MailboxWatcher(settings, analyzer)
+    app.state.mailbox.start()
     yield
+    app.state.mailbox.stop()
     geo.close()
 
 
@@ -195,6 +199,11 @@ def graph(analyzer: AnalyzerDep, analysis_id: str | None = None) -> CampaignGrap
 @app.get("/api/stats", response_model=Stats)
 def stats(analyzer: AnalyzerDep) -> Stats:
     return analyzer.repo.stats()
+
+
+@app.get("/api/mailbox", response_model=MailboxStatus)
+def mailbox(request: Request) -> MailboxStatus:
+    return request.app.state.mailbox.status()
 
 
 @app.post("/api/model/reload", response_model=Health)

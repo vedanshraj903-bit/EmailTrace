@@ -50,6 +50,15 @@ class Settings(BaseSettings):
     ip_cache_ttl_h: int = 24
     feed_refresh_h: int = 12
 
+    # Live mailbox (IMAP). Off unless both user and password are set; for Gmail use an app password.
+    imap_host: str = "imap.gmail.com"
+    imap_port: int = 993
+    imap_user: str = ""
+    imap_password: str = ""
+    imap_folder: str = "INBOX"
+    imap_poll_s: int = 15
+    imap_backfill: int = 0  # on first connect, also analyse this many of the most recent messages
+
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
 
 

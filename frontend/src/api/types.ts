@@ -361,3 +361,25 @@ export interface Health {
   whois_enabled: boolean
   smtp_probe_enabled: boolean
 }
+
+export interface MailboxEvent {
+  analysis_id: string
+  received_at: string
+  subject: string
+  from_address: string
+  score: number
+  level: RiskLevel
+  verdict: Verdict
+}
+
+export interface MailboxStatus {
+  enabled: boolean
+  state: 'disabled' | 'connecting' | 'connected' | 'error'
+  account: string | null
+  folder: string
+  poll_seconds: number
+  last_check: string | null
+  error: string | null
+  analyzed: number
+  recent: MailboxEvent[]
+}

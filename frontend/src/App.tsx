@@ -1,7 +1,7 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import { api } from './api/client'
-import type { Health } from './api/types'
+import type { Health, MailboxStatus } from './api/types'
 import { CommandPalette } from './components/CommandPalette'
 import { Icon, type IconName } from './components/Icon'
 import { Skeleton } from './components/ui'
@@ -32,6 +32,15 @@ const IS_MAC = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(naviga
 
 function SystemStatus() {
   const { data, error } = useResource<Health>('health', (signal) => api.health(signal))
+  const mailbox = useResource<MailboxStatus>('mailbox-status', (signal) => api.mailbox(signal))
+  const { reload: reloadMailbox } = mailbox
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === 'visible') reloadMailbox()
+    }, 15_000)
+    return () => window.clearInterval(timer)
+  }, [reloadMailbox])
+  const mailboxState = mailbox.data ? mailbox.data.state === 'connected' : undefined
   // Geolocation and ASN can come from either provider; name the active one.
   const geoSource = (maxmind: boolean | undefined) =>
     data ? [maxmind && 'MaxMind', data.ipinfo_token && 'IPinfo'].filter(Boolean).join(' + ') || false : undefined
@@ -42,6 +51,7 @@ function SystemStatus() {
     ['WHOIS lookups', data?.whois_enabled],
     ['Tor exit list', data ? data.tor_exit_nodes > 0 : undefined],
     ['Disposable list', data ? data.disposable_domains > 0 : undefined],
+    ['Live mailbox', mailboxState],
   ]
   return (
     <div className="system-status">

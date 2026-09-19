@@ -371,6 +371,28 @@ class Stats(BaseModel):
     daily: list[tuple[str, int, int, int]]  # date, total, high/critical, medium
 
 
+class MailboxEvent(BaseModel):
+    analysis_id: str
+    received_at: datetime
+    subject: str
+    from_address: str
+    score: int
+    level: str
+    verdict: str
+
+
+class MailboxStatus(BaseModel):
+    enabled: bool
+    state: Literal["disabled", "connecting", "connected", "error"]
+    account: str | None  # masked; the full address and password never leave the server
+    folder: str
+    poll_seconds: int
+    last_check: datetime | None
+    error: str | None
+    analyzed: int
+    recent: list[MailboxEvent]
+
+
 class Health(BaseModel):
     status: str
     classifier_loaded: bool

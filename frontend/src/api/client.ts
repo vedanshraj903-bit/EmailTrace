@@ -4,6 +4,7 @@ import type {
   CampaignGraph,
   CustodyEvent,
   Health,
+  MailboxStatus,
   Stats,
 } from './types'
 
@@ -79,6 +80,8 @@ export const api = {
     request<CampaignGraph>(`/graph${query({ analysis_id: analysisId })}`, { signal }),
 
   stats: (signal?: AbortSignal) => request<Stats>('/stats', { signal }),
+
+  mailbox: (signal?: AbortSignal) => request<MailboxStatus>('/mailbox', { signal }),
 
   reportUrl: (id: string) => `${BASE}/analyses/${id}/report.pdf`,
   evidenceUrl: (id: string) => `${BASE}/analyses/${id}/evidence`,

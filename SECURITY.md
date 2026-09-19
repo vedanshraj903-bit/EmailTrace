@@ -10,7 +10,7 @@ All keys and tokens go in local env files. These files are git-ignored and are n
 
 | File | Holds | Committed? |
 |---|---|---|
-| `backend/.env` | `IPINFO_TOKEN`, `MAXMIND_ACCOUNT_ID`, `MAXMIND_LICENSE_KEY` | No |
+| `backend/.env` | `IPINFO_TOKEN`, `MAXMIND_ACCOUNT_ID`, `MAXMIND_LICENSE_KEY`, `IMAP_USER`, `IMAP_PASSWORD` | No |
 | `frontend/.env.local` | `VITE_API_BASE` | No |
 | `backend/.env.example`, `frontend/.env.example` | Setting names with **empty** secret values | Yes |
 
@@ -19,6 +19,8 @@ To set up, copy the example file and fill in your own values:
 ```bash
 cp backend/.env.example backend/.env
 ```
+
+The live mailbox's status API (`/api/mailbox`) shows the account masked (`ja***42@gmail.com`) and never returns the password. Use a Gmail **app password**, not your main password: it only grants mail access and can be revoked on its own.
 
 **Never put a secret in a `VITE_` variable.** Vite builds these into the JavaScript that runs in the browser, so anyone using the app can read them. Keys belong in `backend/.env` only.
 
@@ -77,6 +79,7 @@ Deleting the file in a new commit is **not** enough: the key is still in the his
 1. **Revoke the key first.**
    - IPinfo: [ipinfo.io/account/token](https://ipinfo.io/account/token)
    - MaxMind: *Account → Manage License Keys*
+   - Gmail app password: [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
 2. Create a new key and put it in `backend/.env`.
 3. Restart the backend.
 4. If the repository is public, clean the history with [git-filter-repo](https://github.com/newren/git-filter-repo), then force-push.

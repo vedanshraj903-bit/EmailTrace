@@ -2190,3 +2190,62 @@ ul.plain {
   outline: none;
   box-shadow: none;
 }
+
+/* ---- Live mailbox ---- */
+.live.off::before {
+  background: var(--ink-muted);
+  animation: none;
+}
+
+.mail-feed {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+
+.mail-feed li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  border-top: 1px solid var(--border);
+}
+
+.mail-feed li:first-child {
+  border-top: 0;
+}
+
+.mail-feed a {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.mail-feed a:hover .mail-subject {
+  text-decoration: underline;
+}
+
+.mail-subject {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.mail-feed .tabular {
+  font-family: var(--font-mono);
+}
+
+@media (max-width: 560px) {
+  .mail-feed li {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 10px 16px;
+  }
+
+  .mail-feed .badge {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
