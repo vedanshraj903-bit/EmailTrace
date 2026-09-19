@@ -27,5 +27,8 @@ joblib==1.4.*
 # PDF reports
 reportlab==4.*
 
-# Tests
+# Live mailbox (IMAP) uses Python's built-in imaplib; no extra package is needed.
+
+# Tests and linting
 pytest==8.*
+ruff==0.16.*
