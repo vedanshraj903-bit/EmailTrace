@@ -206,6 +206,41 @@ def mailbox(request: Request) -> MailboxStatus:
     return request.app.state.mailbox.status()
 
 
+def _mailbox_control(request: Request) -> MailboxWatcher:
+    watcher: MailboxWatcher = request.app.state.mailbox
+    if not watcher.enabled:
+        raise HTTPException(409, "No mailbox is connected. Set IMAP_USER and IMAP_PASSWORD in backend/.env.")
+    return watcher
+
+
+@app.post("/api/mailbox/check", response_model=MailboxStatus)
+def mailbox_check(request: Request) -> MailboxStatus:
+    watcher = _mailbox_control(request)
+    watcher.check_now()
+    return watcher.status()
+
+
+@app.post("/api/mailbox/pause", response_model=MailboxStatus)
+def mailbox_pause(request: Request) -> MailboxStatus:
+    watcher = _mailbox_control(request)
+    watcher.pause()
+    return watcher.status()
+
+
+@app.post("/api/mailbox/resume", response_model=MailboxStatus)
+def mailbox_resume(request: Request) -> MailboxStatus:
+    watcher = _mailbox_control(request)
+    watcher.resume()
+    return watcher.status()
+
+
+@app.post("/api/mailbox/scan", response_model=MailboxStatus)
+def mailbox_scan(request: Request, count: Annotated[int, Query(ge=1, le=50)] = 10) -> MailboxStatus:
+    watcher = _mailbox_control(request)
+    watcher.scan_recent(count)
+    return watcher.status()
+
+
 @app.post("/api/model/reload", response_model=Health)
 def reload_model(analyzer: AnalyzerDep) -> Health:
     analyzer.classifier.load()

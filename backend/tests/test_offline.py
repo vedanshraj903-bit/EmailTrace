@@ -375,6 +375,8 @@ class _FakeImap:
 
     def uid(self, command, *args):
         self.commands.append((command, *args))
+        if command == "SEARCH" and args[1] == "ALL":
+            return "OK", [" ".join(map(str, self.uids)).encode()]
         if command == "SEARCH":
             start = int(args[1].split()[1].split(":")[0])
             return "OK", [" ".join(str(u) for u in self.uids if u >= start).encode() or str(self.uids[-1]).encode()]
@@ -384,6 +386,7 @@ class _FakeImap:
 
 
 def _watcher(tmp_path, analyzed: list[bytes]):
+    import hashlib
     from types import SimpleNamespace
 
     from app.config import Settings
@@ -396,7 +399,9 @@ def _watcher(tmp_path, analyzed: list[bytes]):
         return SimpleNamespace(id="x", summary=summary, risk=risk)
 
     settings = Settings(imap_user="someone123@gmail.com", imap_password="secret", _env_file=None)
-    analyzer = SimpleNamespace(db=Database(tmp_path / "t.db"), analyze=analyze)
+    known = {hashlib.sha256(b"raw 1").hexdigest()}  # UID 1 is already a case
+    repo = SimpleNamespace(sha_in_use=lambda sha: sha in known)
+    analyzer = SimpleNamespace(db=Database(tmp_path / "t.db"), analyze=analyze, repo=repo)
     return MailboxWatcher(settings, analyzer)
 
 
@@ -422,3 +427,26 @@ def test_mailbox_status_masks_account_and_hides_password(tmp_path):
     status = _watcher(tmp_path, []).status()
     assert status.account == "so***23@gmail.com"
     assert "secret" not in status.model_dump_json()
+
+
+def test_mailbox_scan_recent_skips_mail_already_analyzed(tmp_path):
+    analyzed: list[bytes] = []
+    watcher = _watcher(tmp_path, analyzed)
+    conn = _FakeImap([1, 2, 3])
+    watcher.scan_recent(10)
+    assert watcher.status().scan_pending
+    watcher._scan(conn, last_uid=3)
+    assert analyzed == [b"raw 2", b"raw 3"]
+    status = watcher.status()
+    assert not status.scan_pending
+    assert status.notice == "Scanned 3 recent emails: 2 new, 1 already analyzed or skipped."
+
+
+def test_mailbox_pause_and_resume(tmp_path):
+    watcher = _watcher(tmp_path, [])
+    watcher.pause()
+    assert watcher.status().state == "paused"
+    watcher.resume()
+    assert watcher.status().state == "connecting"
+    watcher.check_now()
+    assert watcher._wake.is_set()

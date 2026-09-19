@@ -383,12 +383,14 @@ class MailboxEvent(BaseModel):
 
 class MailboxStatus(BaseModel):
     enabled: bool
-    state: Literal["disabled", "connecting", "connected", "error"]
+    state: Literal["disabled", "connecting", "connected", "paused", "error"]
     account: str | None  # masked; the full address and password never leave the server
     folder: str
     poll_seconds: int
     last_check: datetime | None
     error: str | None
+    notice: str | None  # outcome of the last "scan recent" request
+    scan_pending: bool
     analyzed: int
     recent: list[MailboxEvent]
 

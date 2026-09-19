@@ -374,12 +374,14 @@ export interface MailboxEvent {
 
 export interface MailboxStatus {
   enabled: boolean
-  state: 'disabled' | 'connecting' | 'connected' | 'error'
+  state: 'disabled' | 'connecting' | 'connected' | 'paused' | 'error'
   account: string | null
   folder: string
   poll_seconds: number
   last_check: string | null
   error: string | null
+  notice: string | null
+  scan_pending: boolean
   analyzed: number
   recent: MailboxEvent[]
 }

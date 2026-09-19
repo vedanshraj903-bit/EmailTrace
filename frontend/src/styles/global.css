@@ -2249,3 +2249,11 @@ ul.plain {
     justify-self: start;
   }
 }
+
+.mailbox-card .card-header {
+  flex-wrap: wrap;
+}
+
+.mailbox-controls {
+  justify-content: flex-end;
+}

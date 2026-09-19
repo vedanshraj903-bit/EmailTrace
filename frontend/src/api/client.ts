@@ -83,6 +83,11 @@ export const api = {
 
   mailbox: (signal?: AbortSignal) => request<MailboxStatus>('/mailbox', { signal }),
 
+  mailboxAction: (action: 'check' | 'pause' | 'resume') =>
+    request<MailboxStatus>(`/mailbox/${action}`, { method: 'POST' }),
+
+  mailboxScan: (count: number) => request<MailboxStatus>(`/mailbox/scan${query({ count })}`, { method: 'POST' }),
+
   reportUrl: (id: string) => `${BASE}/analyses/${id}/report.pdf`,
   evidenceUrl: (id: string) => `${BASE}/analyses/${id}/evidence`,
 }
