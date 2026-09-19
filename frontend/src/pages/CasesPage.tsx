@@ -36,8 +36,9 @@ export default function CasesPage() {
     <div className="page">
       <header className="page-header">
         <div>
-          <h1>Cases</h1>
-          <p className="subtitle">Every analyzed message, newest first.</p>
+          <div className="kicker">Archive{data ? ` · ${data.total} on file` : ''}</div>
+          <h1>Case archive</h1>
+          <p className="subtitle">Every message examined, newest first. Search by subject, sender, domain or IP.</p>
         </div>
         <Link to="/analyze" className="btn btn-primary">
           <Icon name="upload" size={15} /> Analyze email

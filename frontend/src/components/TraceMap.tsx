@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Circle, CircleMarker, MapContainer, Polyline, Popup, TileLayer, Tooltip, useMap } from 'react-leaflet'
 import type { GeoPoint, Hop, Origin } from '../api/types'
 import { locationLabel } from '../lib/format'
+import { useTheme } from '../lib/theme'
 
 interface MapPoint {
   key: string
@@ -14,17 +15,6 @@ interface MapPoint {
 
 const GROW_MS = 1400
 
-function useDarkMode(): boolean {
-  const query = '(prefers-color-scheme: dark)'
-  const [dark, setDark] = useState(() => window.matchMedia(query).matches)
-  useEffect(() => {
-    const media = window.matchMedia(query)
-    const listener = (event: MediaQueryListEvent) => setDark(event.matches)
-    media.addEventListener('change', listener)
-    return () => media.removeEventListener('change', listener)
-  }, [])
-  return dark
-}
 
 /** Grows the accuracy circle from zero to its true radius (the "radius up" effect). */
 function useGrowingRadius(target: number, key: string): number {
@@ -62,7 +52,7 @@ function FitBounds({ points, radiusMeters }: { points: MapPoint[]; radiusMeters:
 
 
 export function TraceMap({ hops, origin }: { hops: Hop[]; origin: Origin }) {
-  const dark = useDarkMode()
+  const dark = useTheme().resolved === 'dark'
 
   const points = useMemo<MapPoint[]>(() => {
     const byIp = new Map<string, MapPoint>()
@@ -108,7 +98,7 @@ export function TraceMap({ hops, origin }: { hops: Hop[]; origin: Origin }) {
         <TileLayer
           url={tiles}
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          className={dark ? 'tiles-dark' : undefined}
+          className={dark ? 'tiles-dark' : 'tiles-light'}
           maxZoom={19}
         />
         <FitBounds points={points} radiusMeters={targetRadius} />

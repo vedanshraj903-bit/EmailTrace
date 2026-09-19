@@ -1,10 +1,11 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { api } from '../api/client'
 import type { RiskLevel, Stats, Verdict } from '../api/types'
 import { CaseTable } from '../components/CaseTable'
 import { Icon } from '../components/Icon'
-import { Card, EmptyState, ErrorState, Skeleton, VerdictBadge } from '../components/ui'
+import { AnimatedNumber, Card, EmptyState, ErrorState, Skeleton, VerdictBadge } from '../components/ui'
 import { countryName, formatShortDate } from '../lib/format'
 import { useResource } from '../lib/useResource'
 
@@ -53,7 +54,9 @@ function StatTile({ label, value, hint, risk }: {
   return (
     <div className={`card stat ${risk ? `risk-${risk}` : ''}`}>
       <span className="stat-label">{label}</span>
-      <span className="stat-value tabular">{typeof value === 'number' ? pad2(value) : value}</span>
+      <span className="stat-value tabular">
+        {typeof value === 'number' ? <AnimatedNumber value={value} format={pad2} /> : value}
+      </span>
       {hint && <span className="muted small">{hint}</span>}
     </div>
   )
@@ -140,16 +143,31 @@ function BarList({ rows, empty, mono }: { rows: [string, number][]; empty: strin
   )
 }
 
+const REFRESH_MS = 30_000
+const today = new Intl.DateTimeFormat(undefined, { weekday: 'long', day: 'numeric', month: 'long' })
+
 const VERDICT_ORDER: Verdict[] = ['fraud', 'phishing', 'impersonation', 'suspicious', 'legitimate']
 
 export default function DashboardPage() {
   const stats = useResource('stats', (signal) => api.stats(signal))
   const recent = useResource('recent', (signal) => api.list({ limit: 8 }, signal))
+  const { reload: reloadStats } = stats
+  const { reload: reloadRecent } = recent
+
+  // Live desk: refresh quietly while the tab is visible.
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      if (document.visibilityState !== 'visible') return
+      reloadStats()
+      reloadRecent()
+    }, REFRESH_MS)
+    return () => window.clearInterval(timer)
+  }, [reloadStats, reloadRecent])
 
   if (stats.error) {
     return (
       <div className="page">
-        <h1>Dashboard</h1>
+        <h1>Threat activity</h1>
         <Card>
           <ErrorState error={stats.error} onRetry={stats.reload} />
         </Card>
@@ -165,12 +183,18 @@ export default function DashboardPage() {
     <div className="page">
       <header className="page-header">
         <div>
-          <h1>Dashboard</h1>
-          <p className="subtitle">Threat activity across all analyzed messages.</p>
+          <div className="kicker">Desk briefing · {today.format(new Date())}</div>
+          <h1>Threat activity</h1>
+          <p className="subtitle">
+            Every message examined so far, <span className="mark">what is dangerous</span> and where it came from.
+          </p>
         </div>
-        <Link to="/analyze" className="btn btn-primary">
-          <Icon name="upload" size={15} /> Analyze email
-        </Link>
+        <div className="row">
+          <span className="live" title="Refreshes every 30 seconds">Live</span>
+          <Link to="/analyze" className="btn btn-primary">
+            <Icon name="upload" size={15} /> Analyze email
+          </Link>
+        </div>
       </header>
 
       <div className="grid grid-4">

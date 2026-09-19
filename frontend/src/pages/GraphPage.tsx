@@ -11,6 +11,7 @@ export default function GraphPage() {
     <div className="page">
       <header className="page-header">
         <div>
+          <div className="kicker">Evidence board</div>
           <h1>Campaigns</h1>
           <p className="subtitle">
             Cases linked by shared infrastructure: origin IP, sender, domains, Reply-To, DKIM signer, link domains and

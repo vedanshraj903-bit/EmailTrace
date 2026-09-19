@@ -34,7 +34,10 @@ import {
   locationLabel,
   percent,
   scoreTone,
+  type Tone,
+  VERDICT_LABEL,
 } from '../lib/format'
+import { useToast } from '../lib/toast'
 import { useResource } from '../lib/useResource'
 
 const TraceMap = lazy(() => import('../components/TraceMap').then((m) => ({ default: m.TraceMap })))
@@ -706,6 +709,7 @@ function CustodyTab({ id }: { id: string }) {
 
 function CaseHeader({ result }: { result: AnalysisResult }) {
   const navigate = useNavigate()
+  const notify = useToast()
   const [deleting, setDeleting] = useState(false)
   const [confirming, setConfirming] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -714,6 +718,7 @@ function CaseHeader({ result }: { result: AnalysisResult }) {
     setDeleting(true)
     try {
       await api.remove(result.id)
+      notify('Case deleted, along with its stored evidence', 'neutral')
       navigate('/cases', { replace: true })
     } catch (err) {
       setError((err as Error).message)
@@ -726,13 +731,14 @@ function CaseHeader({ result }: { result: AnalysisResult }) {
     <header className="page-header">
       <div className="min-0">
         <Link to="/cases" className="back-link">
-          <Icon name="back" size={14} /> Cases
+          <Icon name="back" size={14} /> All cases
         </Link>
+        <div className="kicker">
+          Case file · <span className="mono">{result.id}</span>
+        </div>
         <h1 className="break">{result.summary.subject || '(no subject)'}</h1>
         <p className="subtitle mono break">{address(result.summary.from)}</p>
-        <p className="muted small">
-          Analyzed {formatDateTime(result.created_at)} · case <span className="mono">{result.id}</span>
-        </p>
+        <p className="muted small">Analyzed {formatDateTime(result.created_at)}</p>
         {error && <Alert tone="critical">{error}</Alert>}
       </div>
       <div className="row">
@@ -795,8 +801,21 @@ function Verdict({ result }: { result: AnalysisResult }) {
           </Alert>
         )}
       </div>
+      <div className={`stamp tone-${STAMP_TONE[risk.verdict]}`} aria-hidden="true">
+        {VERDICT_LABEL[risk.verdict]}
+        <small>Score {risk.score} / 100</small>
+      </div>
     </div>
   )
+}
+
+// The stamp repeats the verdict badge visually; screen readers already get it from the badge.
+const STAMP_TONE: Record<AnalysisResult['risk']['verdict'], Tone> = {
+  legitimate: 'good',
+  suspicious: 'warning',
+  phishing: 'critical',
+  impersonation: 'critical',
+  fraud: 'critical',
 }
 
 export default function CasePage() {

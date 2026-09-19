@@ -1,5 +1,7 @@
+import type { CSSProperties } from 'react'
 import type { RiskLevel } from '../api/types'
 import { scoreTone } from '../lib/format'
+import { AnimatedNumber } from './ui'
 
 const RADIUS = 52
 const ARC = Math.PI * RADIUS // half circle
@@ -16,11 +18,14 @@ export function ScoreGauge({ score, level }: { score: number; level: RiskLevel }
           d="M 12 64 A 52 52 0 0 1 116 64"
           className="gauge-value"
           strokeDasharray={ARC}
+          style={{ '--arc': ARC } as CSSProperties}
           strokeDashoffset={ARC * (1 - clamped / 100)}
         />
       </svg>
       <figcaption>
-        <span className="gauge-score tabular">{clamped}</span>
+        <span className="gauge-score tabular">
+          <AnimatedNumber value={clamped} duration={1100} />
+        </span>
         <span className="gauge-scale">/ 100</span>
       </figcaption>
     </figure>

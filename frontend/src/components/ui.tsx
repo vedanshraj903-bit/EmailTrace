@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { AuthResult, RiskLevel, Severity, Verdict } from '../api/types'
 import { VERDICT_LABEL, authTone, type Tone } from '../lib/format'
 import { Icon, type IconName } from './Icon'
@@ -170,3 +170,35 @@ export function Tabs<K extends string>({ items, active, onChange }: {
     </div>
   )
 }
+
+/** Counts from the previous value to the new one; jumps straight there when motion is reduced. */
+export function AnimatedNumber({ value, format = String, duration = 900 }: {
+  value: number
+  format?: (value: number) => string
+  duration?: number
+}) {
+  const [shown, setShown] = useState(value)
+  const from = useRef(0)
+
+  useEffect(() => {
+    const start = from.current
+    from.current = value
+    if (start === value || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setShown(value)
+      return
+    }
+    let frame = 0
+    const began = performance.now()
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - began) / duration)
+      const eased = 1 - Math.pow(1 - t, 3)
+      setShown(Math.round(start + (value - start) * eased))
+      if (t < 1) frame = requestAnimationFrame(tick)
+    }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [value, duration])
+
+  return <>{format(shown)}</>
+}
+

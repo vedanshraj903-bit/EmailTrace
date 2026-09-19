@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import type { AnalysisListItem } from '../api/types'
-import { formatDateTime, formatRelative } from '../lib/format'
+import { formatDateTime, formatRelative, scoreTone } from '../lib/format'
 import { LevelBadge, VerdictBadge } from './ui'
 
 export function CaseTable({ items, compact }: { items: AnalysisListItem[]; compact?: boolean }) {
@@ -21,7 +21,7 @@ export function CaseTable({ items, compact }: { items: AnalysisListItem[]; compa
           {items.map((item) => (
             <tr key={item.id} className="clickable" onClick={() => navigate(`/cases/${item.id}`)}>
               <td className="num">
-                <strong>{item.score}</strong>
+                <span className={`score-pill tone-${scoreTone(item.score)}`}>{item.score}</span>
               </td>
               <td>
                 <div className="stack tight">
