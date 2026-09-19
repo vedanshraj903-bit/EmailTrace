@@ -1,9 +1,15 @@
+# EmailTrace backend. Python 3.11 – 3.13.
+# Install inside a virtual environment:  pip install -r requirements.txt
+
+# Web API
 fastapi==0.115.*
 uvicorn[standard]==0.32.*
 python-multipart==0.0.*
 pydantic==2.*
 pydantic-settings==2.*
 httpx==0.28.*
+
+# Email authentication, DNS and domain intelligence
 dnspython==2.7.*
 pyspf==2.0.*
 dkimpy==1.1.*
@@ -11,8 +17,15 @@ python-whois==0.9.*
 tldextract==5.*
 geoip2==4.8.*
 beautifulsoup4==4.12.*
+
+# ML classifier (training and serving)
 scikit-learn==1.6.*
+numpy==2.*
 pandas==2.*
 joblib==1.4.*
+
+# PDF reports
 reportlab==4.*
+
+# Tests
 pytest==8.*
